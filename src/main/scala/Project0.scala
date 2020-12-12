@@ -53,13 +53,14 @@ object Project0 extends App {
         }
     }
     
-    /** Function runs if user selects 3v3 analysis
+    /** Function runs when user selects their bracket to analyze
       * 
       * While loop continues as long as user input is valid (valid Int between 1 and 4500) or until users types 'q' to quit
       * 
-      * - Parses CSV file for x amount of characters (or x * 29 lines) where x is the user's input number
-      * - Generates an array containing all character IDs that were parsed
-      * - Prints this array to user
+      * - Makes API call to Blizzard's PvP Leaderboards API and saves it to local cvs file
+      * - Calls function "getPlayerInfo" to grab relevant player information from csv file
+      *       Generates an array containing all relevant player data in the form of "Player" objects
+      * - Calls function "analyze" to perform some basic analysis on the data within the array of "Player" objects
       * 
       */
     def pvpAnalysis(bracket: String) {
@@ -83,7 +84,6 @@ object Project0 extends App {
             println("q --> Exit " + bracket + " analysis")
             println("Enter the number of top players you wish to analyze (max 4500): ")
 
-
             val file = io.Source.fromFile(bracket + ".csv") // File that contains the relevant data
             input = readLine() // User's input
             val players = toInt(input) // Checks if input is a number
@@ -92,9 +92,6 @@ object Project0 extends App {
                 val lines = file.getLines().drop(11).take(players.get * 28) // The lines that will be read from the relevant csv file
                 val playerInfo = getPlayerInfo(lines, players.get)
                 analyze(playerInfo, players.get)
-                //val fillInfo = getCharacterInfo(playerInfo, token)
-                //val hordeAlliance = hordeVsAlliance(lines, rank.get)
-                //println(analyze(hordeAlliance))
             }
             else if (input == "q") println("Exiting " + bracket + " analysis")
             else println("Invalid input! Try again.") // Triggers if user input is not valid
@@ -105,8 +102,6 @@ object Project0 extends App {
     class Player(val name: String, val realm: String, val faction: String, val rank: Int, val rating: Int, val wins: Int, val losses: Int)
 
     /** Retrieves relevant information from the API call to the PvP leaderboards
-      * 
-      *
       * @param lines lines in the relevant file that has been parsed and saved
       * @param players number of players to analyze, input by the user
       * @return array of player objects containing all relevant data for later analysis
@@ -163,15 +158,12 @@ object Project0 extends App {
                 losses = 0
             }
         }
-        // for (player <- playerArray) println("Name: " + player.name.capitalize + " || Realm: " + player.realm.capitalize + 
-        // " || Faction: " + player.faction.toLowerCase().capitalize + " || Rank: " + player.rank + " || Rating: " + player.rating + 
-        // " || Wins: " + player.wins + " || Losses: " + player.losses)
         playerArray
     }
     /** Iterates through relevant file and counts horde and alliance players
       * @param lines lines in the relevant file that has been parsed and saved
       * @param players number of players to analyze, input by the user
-      * @return returns a map containing counts for horde players and alliance players
+      * prints counts for horde players and alliance players
       */
     def hordeVsAlliance(players: Array[Player]) {
         val map = Map("Horde" -> 0, "Alliance" -> 0)

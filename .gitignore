@@ -34,7 +34,7 @@ project/plugins/project/
 !.vscode/extensions.json
 *.code-workspace
 
-### Others ###
+# dotenv environment variables file
 .env
 
 # End of https://www.toptal.com/developers/gitignore/api/vscode,metals,scala,sbt

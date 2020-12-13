@@ -205,7 +205,7 @@ object Project0 extends App {
         }
         playerArray
     }
-    /** Iterates through the input Player array, counting occurances of "HORDE" and "ALLIANCE"
+    /** Iterates through the entire input Player array, counting occurances of "HORDE" and "ALLIANCE"
       * @param players array of Player objects, containing relevant player data parsed from Blizzard PvP API
       * prints % for horde players and alliance players
       */
@@ -223,7 +223,7 @@ object Project0 extends App {
         println(hPercent + "% are Horde")
     }
 
-    /** Iterates through the input Player array, counting occurances of each realm
+    /** Iterates through the entire input Player array, counting occurances of each realm
       * @param players array of Player objects, containing relevant player data parsed from Blizzard PvP API
       * prints counts of each realm occurance
       */
@@ -239,7 +239,7 @@ object Project0 extends App {
         for ((k, v) <- sorted) println(k.capitalize + ": " + v)
     }
 
-    /** Iterates through the input Player array, counting wins and losses
+    /** Iterates through the entire input Player array, counting wins and losses
       * @param players array of Player objects, containing relevant player data parsed from Blizzard PvP API
       * prints average win %, loss %, and average games played
       */

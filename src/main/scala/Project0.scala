@@ -16,10 +16,10 @@ object Project0 extends App {
     def start() {
         println()
         println("Welcome to Cody Piazza's project zero!")
-        //Thread.sleep(1000)
+        Thread.sleep(2000)
         println()
         println("This project will analyze the current World of Warcraft PvP season.")
-        //Thread.sleep(1000)
+        Thread.sleep(2000)
         println()
          breakable { while (true) {
             println("Options:")
@@ -32,16 +32,20 @@ object Project0 extends App {
             else if (desiredCount == "3") pvpAnalysis("3v3")
             else if (desiredCount == "10") pvpAnalysis("rbg")
             else if (desiredCount == "q") {
+                println()
                 println("Exiting...")
+                println()
                 break
             }
-            else println("Invalid input! Try again")
+            else {
+                println()
+                println("Invalid input! Try again")
+            }
+            println()
         } }
     }
     
-
     /** Simple function used to check if a String can be converted into an Int
-      *
       * @param s the input String
       * @return Some(Int) if conversion is valid, or None if invalid
       */
@@ -54,17 +58,16 @@ object Project0 extends App {
     }
     
     /** Function runs when user selects their bracket to analyze
-      * 
+      * @param bracket the pvp bracket to analyze, either 2v2, 3v3, or rbg (for rated battlegrounds)
       * While loop continues as long as user input is valid (valid Int between 1 and 4500) or until users types 'q' to quit
       * 
       * - Makes API call to Blizzard's PvP Leaderboards API and saves it to local cvs file
       * - Calls function "getPlayerInfo" to grab relevant player information from csv file
       *       Generates an array containing all relevant player data in the form of "Player" objects
       * - Calls function "analyze" to perform some basic analysis on the data within the array of "Player" objects
-      * 
       */
     def pvpAnalysis(bracket: String) {
-        var input = "" // User input variable
+        var input = "" 
 
         // Makes API call to get relevant pvp data
         println()
@@ -79,22 +82,64 @@ object Project0 extends App {
         writer.close()
 
         while (input != "q") {
-            //Requests input from user
             println()
             println("q --> Exit " + bracket + " analysis")
-            println("Enter the number of top players you wish to analyze (max 4500): ")
+            println("Enter the number of top players you wish to analyze in the " + bracket + " bracket (max 4500): ")
 
-            val file = io.Source.fromFile(bracket + ".csv") // File that contains the relevant data
-            input = readLine() // User's input
-            val players = toInt(input) // Checks if input is a number
+            val file = io.Source.fromFile(bracket + ".csv")
+            input = readLine()
+            val players = toInt(input)
 
-            if (players != None && players.get > 0 && players.get < 4501) { // Checks for valid input
-                val lines = file.getLines().drop(11).take(players.get * 28) // The lines that will be read from the relevant csv file
+            if (players != None && players.get > 0 && players.get < 4501) { 
+                val lines = file.getLines().drop(11).take(players.get * 28)
                 val playerInfo = getPlayerInfo(lines, players.get)
-                analyze(playerInfo, players.get)
+                analyze(playerInfo, bracket)
             }
-            else if (input == "q") println("Exiting " + bracket + " analysis")
-            else println("Invalid input! Try again.") // Triggers if user input is not valid
+            else if (input == "q") {
+                println()
+                println("Exiting " + bracket + " analysis...")
+            }
+            else {
+                println()
+                println("Invalid input! Try again.")
+            }
+        }
+    }
+
+    /** Performs final analysis of user specified bracket and player count
+      * @param players player array that will be used as a total count of players as well as arguments for functions
+      * @param bracket PvP bracket previously specified by user to be used as argument for functions
+      * user specifies which function to run, which will perform the basic analysis selected
+      */
+    def analyze(players: Array[Player], bracket: String) {
+        var input = ""
+        while (input != "q") {
+            println()
+            println("What do you wish to know about the top " + players.length + " players in the " + bracket + " bracket?")
+            println()
+            println("f --> Faction: Alliance to Horde ratio")
+            println("wl--> Win/Loss: Average win/loss ratio")
+            println("r --> Realms: Count of all realms that the top players are from")
+            println("q --> Quit: Exit analysis")
+            input = readLine()
+            println()
+            if (input == "f") {
+                hordeVsAlliance(players, bracket)
+                waitforUser()
+            }
+            else if (input == "r") {
+                countRealms(players, bracket)
+                waitforUser()
+            }
+            else if (input == "wl") {
+                winLossRatio(players, bracket)
+                waitforUser()
+            }
+            else if (input == "q") println("Exiting detailed analysis...")
+            else {
+                println()
+                println("Invalid input! Try again.")
+            }
         }
     }
 
@@ -160,12 +205,11 @@ object Project0 extends App {
         }
         playerArray
     }
-    /** Iterates through relevant file and counts horde and alliance players
-      * @param lines lines in the relevant file that has been parsed and saved
-      * @param players number of players to analyze, input by the user
-      * prints counts for horde players and alliance players
+    /** Iterates through the input Player array, counting occurances of "HORDE" and "ALLIANCE"
+      * @param players array of Player objects, containing relevant player data parsed from Blizzard PvP API
+      * prints % for horde players and alliance players
       */
-    def hordeVsAlliance(players: Array[Player]) {
+    def hordeVsAlliance(players: Array[Player], bracket: String) {
         val map = Map("Horde" -> 0, "Alliance" -> 0)
         for (player <- players) { // Loops through all selected lines
             if (player.faction.equalsIgnoreCase("ALLIANCE")) map("Alliance") += 1
@@ -173,45 +217,56 @@ object Project0 extends App {
         }
         val aPercent = ((map("Alliance").toDouble / players.length) * 100).round
         val hPercent = ((map("Horde").toDouble / players.length) * 100).round
-        println("In the top " + players.length + " players in the US, " + aPercent + "% are Alliance and " + hPercent + "% are Horde.")
+        println("In the top " + players.length + " players in the " + bracket + " bracket in the US:")
+        println()
+        println(aPercent + "% are Alliance")
+        println(hPercent + "% are Horde")
     }
-    def countRealms(players: Array[Player]) {
+
+    /** Iterates through the input Player array, counting occurances of each realm
+      * @param players array of Player objects, containing relevant player data parsed from Blizzard PvP API
+      * prints counts of each realm occurance
+      */
+    def countRealms(players: Array[Player], bracket: String) {
         val map = Map[String, Int]()
         for (p <- players) {
             if (!map.contains(p.realm)) map += (p.realm -> 1)
             else map(p.realm) += 1
         }
         val sorted = ListMap(map.toSeq.sortWith(_._2 > _._2):_*)
+        println("The realms in the top " + players.length + " players in the " + bracket + " bracket in the US are:")
+        println()
         for ((k, v) <- sorted) println(k.capitalize + ": " + v)
     }
+
+    /** Iterates through the input Player array, counting wins and losses
+      * @param players array of Player objects, containing relevant player data parsed from Blizzard PvP API
+      * prints average win %, loss %, and average games played
+      */
+    def winLossRatio(players: Array[Player], bracket: String) {
+        val map = Map("Wins" -> 0, "Losses" -> 0)
+        for (p <- players) {
+            map("Wins") += p.wins
+            map("Losses") += p.losses
+        }
+        val totalGames = map("Wins") + map("Losses")
+        val wPercent = ((map("Wins").toDouble / totalGames) * 100).round
+        val lPercent = ((map("Losses").toDouble / totalGames) * 100).round
+        val averageGamesPlayed = totalGames / players.length
+        println("For the top " + players.length + " players in " + bracket + " bracket in the US:")
+        println()
+        println(wPercent + "% are victories")
+        println(lPercent + "% are losses")
+        println("Average games played: " + averageGamesPlayed)
+    }
+
+    /**
+      * Simple function that program to pause while user looks at results
+      */
     def waitforUser() {
+        println()
         println("Press enter to resume")
         readLine()
-    }
-    def analyze(players: Array[Player], count: Int) {
-        var input = ""
-        while (input != "q") {
-            //Requests input from user
-            println()
-            println("What do you wish to know about the top " + count + " players?")
-            println()
-            println("f --> Faction: Alliance to Horde ratio")
-            println("wl--> Win/Loss: Average win/loss ratio")
-            println("r --> Realms: Count of all realms that the top players are from")
-            println("q --> Quit: Exit analysis")
-
-            input = readLine() // User's input
-
-            if (input == "f") {
-                hordeVsAlliance(players)
-                waitforUser()
-            }
-            else if (input == "r") {
-                countRealms(players)
-                waitforUser()
-            }
-        }
-
     }
 
     // BELOW CODE IS NOT CURRENTLY BEING USED

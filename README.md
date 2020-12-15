@@ -20,7 +20,7 @@ Analysis includes:
 
 >Access credentials to Blizzard's battle.net APIs (https://develop.battle.net/)
 
->> These access credentials should be saved in a .env file located in the root directory of this project
+>> These access credentials should be saved in a .env file located in the root directory of this project.
 This .env file should contain the user's Blizzard client ID and Blizzard client secret in the following format:
 
     ID=<Blizzard Client ID here>

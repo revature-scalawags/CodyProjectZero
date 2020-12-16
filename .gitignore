@@ -37,10 +37,12 @@ project/plugins/project/
 # dotenv environment variables file
 .env
 
-# csv files
-2v2.csv
-3v3.csv
-rbg.csv
-test.csv
+# json files
+2v2.json
+3v3.json
+rbg.json
+
+#database
+data/
 
 # End of https://www.toptal.com/developers/gitignore/api/vscode,metals,scala,sbt

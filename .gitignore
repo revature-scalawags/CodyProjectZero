@@ -37,12 +37,16 @@ project/plugins/project/
 # dotenv environment variables file
 .env
 
-# json files
+# generated json files
 2v2.json
 3v3.json
 rbg.json
 
-#database
-data/
+#log file
+log.log
+
+#logback config file
+src/main/resources/logback.xml
+
 
 # End of https://www.toptal.com/developers/gitignore/api/vscode,metals,scala,sbt

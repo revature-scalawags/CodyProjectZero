@@ -2,6 +2,11 @@ package wowPvPAnalysis
 
 import scala.collection.mutable._
 import scala.io.BufferedSource
+import com.typesafe.scalalogging.LazyLogging
+import java.util.Date
+import spray.json._
+import DefaultJsonProtocol._
+import org.mongodb.scala.bson.collection._
 
 // Class used to organize player data retrieved
     class Player {
@@ -42,7 +47,7 @@ import scala.io.BufferedSource
             _losses = losses
         }
     }
-    object Player {
+    object Player extends LazyLogging {
         /** Retrieves relevant information from the API call to the PvP leaderboards
          * @param lines lines in the relevant file that has been parsed and saved
          * @param players number of players to analyze, input by the user
@@ -91,6 +96,9 @@ import scala.io.BufferedSource
             println(s"In the top ${players.length} players in the $bracket bracket in the US:\n")
             println(s"$aPercent% are Alliance")
             println(s"$hPercent% are Horde")
+            val doc = Document("Date and Time" -> new Date().toString(), "Bracket" -> bracket, "Player Count" -> players.length, "Alliance %" -> aPercent, "Horde %" -> hPercent)
+            DB.add(doc, "faction-ratio")
+            logger.info(s"Bracket: $bracket | Players: ${players.length} | Alliance %: $aPercent | Horde %: $hPercent")
         }
         /** Iterates through the entire input Player array, counting occurances of each realm
          * @param players array of Player objects, containing relevant player data parsed from Blizzard PvP API
@@ -102,9 +110,15 @@ import scala.io.BufferedSource
                 if (!map.contains(p.realm)) map += (p.realm -> 1)
                 else map(p.realm) += 1
             }
-            val sorted = ListMap(map.toSeq.sortWith(_._2 > _._2):_*) //https://alvinalexander.com/scala/how-to-sort-map-in-scala-key-value-sortby-sortwith/
+            val sorted = Array(map.toArray.sortWith(_._2 < _._2):_*) //https://alvinalexander.com/scala/how-to-sort-map-in-scala-key-value-sortby-sortwith/
             println(s"The realms in the top ${players.length} players in the $bracket bracket in the US are:\n")
-            for ((k, v) <- sorted) println(k.capitalize + ": " + v)
+            for ((k, v) <- sorted) {
+
+                println(k.capitalize + ": " + v)
+            }
+            val doc = Document("Date and Time" -> new Date().toString(), "Bracket" -> bracket, "Player Count" -> players.length, "Realms Represented" -> map.size)
+            DB.add(doc, "realm-counts")
+            logger.info(s"Bracket: $bracket | Players: ${players.length} | Realms Represented: ${map.size}")
         }
         /** Iterates through the entire input Player array, counting wins and losses
          * @param players array of Player objects, containing relevant player data parsed from Blizzard PvP API
@@ -124,5 +138,9 @@ import scala.io.BufferedSource
             println(s"$wPercent% are victories")
             println(s"$lPercent% are losses")
             println(s"Average games played: $averageGamesPlayed")
+            val doc = Document("Date and Time" -> new Date().toString(), "Bracket" -> bracket, "Player Count" -> players.length,
+             "Win %" -> wPercent, "Loss %" -> lPercent, "Average Games Played" -> averageGamesPlayed)
+            DB.add(doc, "win-loss-ratio")
+            logger.info(s"Bracket: $bracket | Players: ${players.length} | Win %: $wPercent | Loss %: $lPercent | Average games: $averageGamesPlayed")
         }
     }

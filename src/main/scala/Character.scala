@@ -3,14 +3,21 @@ package wowPvPAnalysis
 import java.io.FileNotFoundException
 // BELOW CODE IS NOT CURRENTLY BEING USED
     
-    //Class used for the function that follows
-    class Character(val name: String, val realm: String, val playable_class: String, val race: String, val current_spec: String) {
+//Class used for the function that follows
+class Character(val name: String, val realm: String, val playable_class: String, val race: String, val current_spec: String) {
 
-        def getCharacterInfo(charInfo: Array[Player], token: String): Array[Character] = {
+    /** This method retrieves additional data about individual characters that showed up in the original API call
+     * However, it currently takes too long to execute this function when the number of characters grows beyond 10 or so
+     * As such, it will not be used until it can be optimized
+     * @param charInfo base character information (name and realm) used to retrieve other data
+     * @param token token generated from original API call to authorize additional calls
+     * @return returns an array of more detailed character objects
+     */
+    def getCharacterInfo(charInfo: Array[Player], token: String): Array[Character] = {
         val results = new Array[Character](charInfo.size)
         var index = 0
         for (player <- charInfo) {
-                val url = "https://us.api.blizzard.com/profile/wow/character/" + player.realm + "/" + player.name + "/appearance?namespace=profile-us&locale=en_US&access_token=" + token
+                val url = s"https://us.api.blizzard.com/profile/wow/character/${player.realm}/${player.name}/appearance?namespace=profile-us&locale=en_US&access_token=$token"
                 try {
                     val info = scala.io.Source.fromURL(url).mkString
                     var sub = info.substring(info.indexOf("\"name\"") + 7)
@@ -34,12 +41,4 @@ import java.io.FileNotFoundException
         for (i <- results) println(i.name)
         results
     }
-    }
-
-    /** This method retrieves additional data about individual characters that showed up in the original API call
-      * However, it currently takes too long to execute this function when the number of characters grows beyond 10 or so
-      * As such, it will not be used until it can be optimized
-      * @param charInfo base character information (name and realm) used to retrieve other data
-      * @param token token generated from original API call to authorize additional calls
-      * @return returns an array of more detailed character objects
-      */
+}

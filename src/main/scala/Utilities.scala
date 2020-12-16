@@ -11,10 +11,11 @@ import scala.util.{Failure, Success}
 import scala.concurrent.duration._
 import java.util.concurrent.Executors
 import scala.concurrent.ExecutionContext
+import com.typesafe.scalalogging.LazyLogging
 
-class Utilities()
+class Utilities ()
 
-object Utilities {
+object Utilities extends LazyLogging {
     /** Simple function used to check if a String can be converted into an Int
       * @param s the input String
       * @return Some(Int) if conversion is valid, or None if invalid
@@ -23,7 +24,10 @@ object Utilities {
         try {
             Some(s.toInt)
         } catch {
-            case e: Exception => None
+            case e: Exception => {
+                logger.debug("Failed to parse to an Int!")
+                None
+            }
         }
     }
 
@@ -48,18 +52,16 @@ object Utilities {
             r2 <- threes
             r3 <- rbgs
         } yield (r1 + r2 + r3)
-        println()
-        println("Welcome to Cody Piazza's project zero!")
+        println("\nWelcome to Cody Piazza's project zero!")
         Thread.sleep(2000)
-        println()
-        println("This project will analyze the current World of Warcraft PvP season.")
+        println("\nThis project will analyze the current World of Warcraft PvP season.")
         Thread.sleep(2000)
         println()
         scala.concurrent.Await.ready(result, 10.seconds)
         result.onComplete {
-            case Success(number) => 
+            case Success(number) => logger.info("Futures returned successfully!")
             case Failure(exception) => {
-                println("Failure! Data took too long to be retrieved!")
+                logger.error("Failure! Data took too long to be retrieved!")
                 exception.printStackTrace
             }
         }
@@ -119,6 +121,7 @@ object Utilities {
     def quickAnalysis(bracket: String, count: Int, analysisType: String) {
         if (bracket == "" || count == 0 || analysisType == "") {
             println("Input invalid! Are you attempting to do a quick analysis?\nQuick analysis format -> 2v2|3v3|rbg 1-4500 f|wl|r\nExample: 2v2 500 f")
+            logger.info("Caught user attempting to input quick analysis, but format was wrong.")
         }
         else {
             val players = Player.getPlayerInfo(count, bracket)

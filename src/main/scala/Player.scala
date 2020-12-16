@@ -1,4 +1,7 @@
+package wowPvPAnalysis
+
 import scala.collection.mutable._
+import scala.io.BufferedSource
 
 // Class used to organize player data retrieved
     class Player {
@@ -45,7 +48,8 @@ import scala.collection.mutable._
          * @param players number of players to analyze, input by the user
          * @return array of player objects containing all relevant data for later analysis
          */
-        def getPlayerInfo(lines: Iterator[String], players: Int) : Array[Player] = {
+        def getPlayerInfo(players: Int, bracket: String) : Array[Player] = {
+            val lines = io.Source.fromFile(s"$bracket.json").getLines().drop(11).take(players * 28)
             val playerArray = new Array[Player](players)
 
             var trim = ""
@@ -84,10 +88,9 @@ import scala.collection.mutable._
             }
             val aPercent = ((map("Alliance").toDouble / players.length) * 100).round
             val hPercent = ((map("Horde").toDouble / players.length) * 100).round
-            println("In the top " + players.length + " players in the " + bracket + " bracket in the US:")
-            println()
-            println(aPercent + "% are Alliance")
-            println(hPercent + "% are Horde")
+            println(s"In the top ${players.length} players in the $bracket bracket in the US:\n")
+            println(s"$aPercent% are Alliance")
+            println(s"$hPercent% are Horde")
         }
         /** Iterates through the entire input Player array, counting occurances of each realm
          * @param players array of Player objects, containing relevant player data parsed from Blizzard PvP API
@@ -99,7 +102,7 @@ import scala.collection.mutable._
                 if (!map.contains(p.realm)) map += (p.realm -> 1)
                 else map(p.realm) += 1
             }
-            val sorted = ListMap(map.toSeq.sortWith(_._2 > _._2):_*)
+            val sorted = ListMap(map.toSeq.sortWith(_._2 > _._2):_*) //https://alvinalexander.com/scala/how-to-sort-map-in-scala-key-value-sortby-sortwith/
             println(s"The realms in the top ${players.length} players in the $bracket bracket in the US are:\n")
             for ((k, v) <- sorted) println(k.capitalize + ": " + v)
         }
@@ -117,10 +120,9 @@ import scala.collection.mutable._
             val wPercent = ((map("Wins").toDouble / totalGames) * 100).round
             val lPercent = ((map("Losses").toDouble / totalGames) * 100).round
             val averageGamesPlayed = totalGames / players.length
-            println("For the top " + players.length + " players in " + bracket + " bracket in the US:")
-            println()
-            println(wPercent + "% are victories")
-            println(lPercent + "% are losses")
-            println("Average games played: " + averageGamesPlayed)
+            println(s"For the top ${players.length} players in $bracket bracket in the US:\n")
+            println(s"$wPercent% are victories")
+            println(s"$lPercent% are losses")
+            println(s"Average games played: $averageGamesPlayed")
         }
     }

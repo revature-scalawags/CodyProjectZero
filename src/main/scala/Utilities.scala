@@ -16,7 +16,15 @@ import com.typesafe.scalalogging.LazyLogging
 class Utilities ()
 
 object Utilities extends LazyLogging {
+
+    /** Simple function called when user's input is invalid.
+      */
+    def invalid() {
+        println("Invalid input! Try again.")
+        waitforUser()
+    }
     /** Simple function used to check if a String can be converted into an Int
+      * (Just an excuse to try out Option-> Some/None)
       * @param s the input String
       * @return Some(Int) if conversion is valid, or None if invalid
       */
@@ -40,24 +48,31 @@ object Utilities extends LazyLogging {
     }
 
     /** Function used to start the application
+      * 
+      * Creates three futures as the application starts that call the Wow PvP Leadersboards API and grab data from them to be used later
+      * Once the introductory statements have executed and the futures have been returned, the application begins runnig with the beginAnalysis() method
       */
     def start() {
-        //Referenced https://users.scala-lang.org/t/executing-an-action-after-everything-in-a-list-of-futures-has-completed/1607/2
-        //for the following Future implementation
-        val twos = Future {fetchData("2v2"); 1}
-        val threes = Future {fetchData("3v3"); 2}
-        val rbgs = Future {fetchData("rbg"); 3}
-        val result = for {
+        // Referenced https://users.scala-lang.org/t/executing-an-action-after-everything-in-a-list-of-futures-has-completed/1607/2
+        // for the following Future implementation:
+        val twos = Future {fetchData("2v2"); 1} // Fetches 2v2 data from API
+        val threes = Future {fetchData("3v3"); 2} // Fetches 3v3 data from API
+        val rbgs = Future {fetchData("rbg"); 3} // Fetches rbg data from API
+
+        // Yields a result when all futures have finished
+        val result = for { 
             r1 <- twos
-            r2 <- threes
+            r2 <- threes 
             r3 <- rbgs
-        } yield (r1 + r2 + r3)
-        println("\nWelcome to Cody Piazza's project zero!")
-        Thread.sleep(2000)
-        println("\nThis project will analyze the current World of Warcraft PvP season.")
-        Thread.sleep(2000)
-        println()
-        scala.concurrent.Await.ready(result, 10.seconds)
+        } yield (r1 + r2 + r3) 
+
+        println("\nWelcome to Cody Piazza's project zero!") // Welcome statement
+        Thread.sleep(2000) // Gives user time to see welcome statement
+        println("\nThis project will analyze the current World of Warcraft PvP season.\n") // States purpose of program
+        Thread.sleep(2000) // Gives user time to see above message
+        scala.concurrent.Await.ready(result, 10.seconds) // Wait for futures to return with our json files
+
+        //Logs results of futures
         result.onComplete {
             case Success(number) => logger.info("Futures returned successfully!")
             case Failure(exception) => {
@@ -65,16 +80,25 @@ object Utilities extends LazyLogging {
                 exception.printStackTrace
             }
         }
-        beginAnalysis()
+        beginAnalysis() // Jump to next method
     }
-    def fetchData(bracket: String) {
-        val tokenRequest = s"curl -s -u ${sys.env.get("ID").get}:${sys.env.get("SECRET").get} -d grant_type=client_credentials https://us.battle.net/oauth/token"
-        val token = tokenRequest.!!.split("\"")(3)
-        val url = s"https://us.api.blizzard.com/data/wow/pvp-season/30/pvp-leaderboard/$bracket?namespace=dynamic-us&locale=en_US&access_token=$token"
+
+    /** This method is called in the start() method
+      * 
+      * Fetches an access token from the Blizzard API, then grabs data from the WoW PvP leadersboards Blizzard API for the current season (season 30)
+      * Converts the the returned information into a json format and then writes it to a json file
+      * @param bracket the relevant bracket (2v2, 3v3, rbg) that the user has selected, which will also be the file name
+      */
+    def fetchData(bracket: String): Iterator[String] = {
+        val tokenRequest = s"curl -s -u ${sys.env.get("ID").get}:${sys.env.get("SECRET").get} -d grant_type=client_credentials https://us.battle.net/oauth/token" // Token request
+        val token = tokenRequest.!!.split("\"")(3) // Sends out token request and grabs returned result, splitting it into an array and grabbing the fourth item, which is the token
+        val url = s"https://us.api.blizzard.com/data/wow/pvp-season/30/pvp-leaderboard/$bracket?namespace=dynamic-us&locale=en_US&access_token=$token" // call the relevant API
         val writer = new PrintWriter(s"$bracket.json")
         val apiInfo = scala.io.Source.fromURL(url).mkString.parseJson.prettyPrint
         writer.print(apiInfo)
         writer.close()
+        val testLines = scala.io.Source.fromString(apiInfo).getLines().take(39) // For testing purposes
+        testLines
     }
 
     /** Checks if the user's input is a valid attempt at getting a quick analysis
@@ -118,9 +142,18 @@ object Utilities extends LazyLogging {
         (partiallyValid, bracket, playerCount, aType)
     }
 
-    def quickAnalysis(bracket: String, count: Int, analysisType: String) {
+    /** Checks to see if all user inputs are valid for a quick analysis
+      *     If they are, then the relevant data is grabbed and the specified analysis is performed
+      *     If not, a message is displayed displaying the correct input format for a quick analysis
+      * @param bracket the PvP bracket to analyze (2v2, 3v3, rbg)
+      * @param count the number of top players to analyze in the bracket (1-4500)
+      * @param analysisType which analysis to run (f-> faction ratio, r-> realm count, wl -> win/loss ratio)
+      */
+    def quickAnalysis(bracket: String, count: Int, analysisType: String): String = {
+        var outputMessage = "Valid syntax"
         if (bracket == "" || count == 0 || analysisType == "") {
-            println("Input invalid! Are you attempting to do a quick analysis?\nQuick analysis format -> 2v2|3v3|rbg 1-4500 f|wl|r\nExample: 2v2 500 f")
+            outputMessage = "Input invalid! Are you attempting to do a quick analysis?\nQuick analysis format -> 2v2|3v3|rbg 1-4500 f|wl|r\nExample: 2v2 500 f"
+            println(outputMessage)
             logger.info("Caught user attempting to input quick analysis, but format was wrong.")
         }
         else {
@@ -132,6 +165,7 @@ object Utilities extends LazyLogging {
             }
         }
         waitforUser()
+        outputMessage
     }
     def beginAnalysis() {
         breakable { while (true) {
@@ -142,19 +176,20 @@ object Utilities extends LazyLogging {
             println("q --> Exit application\n")
             val desiredCount = readLine()
             println()
-            desiredCount match {
-                case "2v2" => pvpAnalysis("2v2")
-                case "3v3" => pvpAnalysis("3v3")
-                case "rbg" => pvpAnalysis("rbg")
-                case "q" => {println("\nExiting...\n"); break}
-                case desiredCount if checkValid(desiredCount)._1 == true => {
-                    val results = checkValid(desiredCount)
-                    quickAnalysis(results._2, results._3, results._4)
+            try {
+                desiredCount match {
+                    case "2v2" => pvpAnalysis("2v2")
+                    case "3v3" => pvpAnalysis("3v3")
+                    case "rbg" => pvpAnalysis("rbg")
+                    case "q" => {println("\nExiting...\n"); break}
+                    case desiredCount if checkValid(desiredCount)._1 == true => {
+                        val results = checkValid(desiredCount)
+                        quickAnalysis(results._2, results._3, results._4)
+                    }
+                    case _ => invalid
                 }
-                case _ => {
-                    println("Invalid input! Try again.")
-                    waitforUser()
-                }
+            } catch {
+                case n : NumberFormatException => invalid
             }
         } }
     }
@@ -177,19 +212,19 @@ object Utilities extends LazyLogging {
             input = readLine()
             println()
             val players = toInt(input)
-
-            if (players != None && players.get > 0 && players.get < 4501) { 
-                val playerInfo = Player.getPlayerInfo(players.get, bracket)
-                analyze(playerInfo, bracket)
-            }
-            else if (input == "q") println(s"\nExiting $bracket analysis...")
-            else if (checkValid(input)._1 == true) {
-                val results = checkValid(input)
-                quickAnalysis(results._2, results._3, results._4)
-            }
-            else {
-                println("Invalid input! Try again.")
-                waitforUser()
+            try {
+                if (players != None && players.get > 0 && players.get < 4501) { 
+                    val playerInfo = Player.getPlayerInfo(players.get, bracket)
+                    analyze(playerInfo, bracket)
+                }
+                else if (input == "q") println(s"\nExiting $bracket analysis...")
+                else if (checkValid(input)._1 == true) {
+                    val results = checkValid(input)
+                    quickAnalysis(results._2, results._3, results._4)
+                }
+                else invalid
+            } catch {
+                case n: NumberFormatException => invalid
             }
         }
     }
@@ -209,28 +244,29 @@ object Utilities extends LazyLogging {
             println("q --> Quit: Exit analysis\n")
             input = readLine()
             println()
-            input match {
-                case "f" => {
-                    Player.hordeVsAlliance(players, bracket)
-                    waitforUser()
-                }
-                case "r" => {
-                    Player.countRealms(players, bracket)
-                    waitforUser()
-                }
-                case "wl" => {
-                    Player.winLossRatio(players, bracket)
-                    waitforUser()
-                }
-                case "q" => println("Exiting detailed analysis...")
-                case input if checkValid(input)._1 == true => {
-                    val results = checkValid(input)
-                    quickAnalysis(results._2, results._3, results._4)
-                }
-                case _ => {
-                    println("Invalid input! Try again.")
-                    waitforUser()
-                }
+            try {
+                input match {
+                    case "f" => {
+                        Player.hordeVsAlliance(players, bracket)
+                        waitforUser()
+                    }
+                    case "r" => {
+                        Player.countRealms(players, bracket)
+                        waitforUser()
+                    }
+                    case "wl" => {
+                        Player.winLossRatio(players, bracket)
+                        waitforUser()
+                    }
+                    case "q" => println("Exiting detailed analysis...")
+                    case input if checkValid(input)._1 == true => {
+                        val results = checkValid(input)
+                        quickAnalysis(results._2, results._3, results._4)
+                    }
+                    case _ => invalid
+                }   
+            } catch {
+                case n: NumberFormatException => invalid
             }
         }
     }

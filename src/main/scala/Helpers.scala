@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package wowPvPAnalysis
+package tour
 
 import java.util.concurrent.TimeUnit
 

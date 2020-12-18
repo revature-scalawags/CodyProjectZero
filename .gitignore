@@ -41,12 +41,14 @@ project/plugins/project/
 2v2.json
 3v3.json
 rbg.json
+2v2Test.json
+3v3Test.json
+rbgTest.json
 
 #log file
 log.log
 
 #logback config file
 src/main/resources/logback.xml
-
 
 # End of https://www.toptal.com/developers/gitignore/api/vscode,metals,scala,sbt

@@ -54,14 +54,18 @@ import org.mongodb.scala.bson.collection._
          * @return array of player objects containing all relevant data for later analysis
          */
         def getPlayerInfo(players: Int, bracket: String) : Array[Player] = {
+            // Gets the relevant lines (first 11 are metadata, then grabs the lines following equal to the player count (players) * 28 (number of lines of dataper character))
             val lines = io.Source.fromFile(s"$bracket.json").getLines().drop(11).take(players * 28)
-            val playerArray = new Array[Player](players)
+
+            val playerArray = new Array[Player](players) // The array of player objects that will be returned
 
             var trim = ""
             var index = 0
-            var player = new Player()
-            for (line <- lines) { // Loops through all selected lines
-                val trimmed = line.trim()
+            var player = new Player() // First new player object
+
+            // Loops through all selected lines and grabs relevant data from them if such data exists
+            for (line <- lines) { 
+                val trimmed = line.trim() // Trim the whitespace to make it easier to grab the lines desired
                 line match {
                     case line if line.contains("\"name\"") => player.name_=(trimmed.substring(9, trimmed.lastIndexOf("\"")).toLowerCase())
                     case line if line.contains("\"slug\"") => player.realm_=(trimmed.substring(9, trimmed.lastIndexOf("\"")))
@@ -71,25 +75,25 @@ import org.mongodb.scala.bson.collection._
                     case line if line.contains("\"lost\"") => player.losses_=(trimmed.substring(8, trimmed.lastIndexOf(",")).toInt)
                     case line if line.contains("\"won\"") => {
                         player.wins_=(trimmed.substring(7).toInt)
-                        playerArray(index) = player
-                        player = new Player()
-                        index += 1
+                        playerArray(index) = player // player object is now full, and can be added to the array
+                        player = new Player() // New player object for next iteration
+                        index += 1 // Add 1 to index so the next iteration points to the next spot in the playerArray
                     }
-                    case _ => ()
+                    case _ => () // Base case, do nothing
                 }
             }
-            playerArray
+            playerArray // Return fully populated player array
         }
 
         /** Iterates through the entire input Player array, counting occurances of "HORDE" and "ALLIANCE"
          * @param players array of Player objects, containing relevant player data parsed from Blizzard PvP API
          * prints % for horde players and alliance players
          */
-        def hordeVsAlliance(players: Array[Player], bracket: String) {
-            val map = Map("Horde" -> 0, "Alliance" -> 0)
+        def hordeVsAlliance(players: Array[Player], bracket: String): Document =  {
+            val map = Map("Horde" -> 0, "Alliance" -> 0) // Starting map that will contain counts of horde and alliance
             for (player <- players) { // Loops through all selected lines
-                if (player.faction.equalsIgnoreCase("ALLIANCE")) map("Alliance") += 1
-                else if (player.faction.equalsIgnoreCase("HORDE")) map("Horde") += 1
+                if (player.faction.equalsIgnoreCase("ALLIANCE")) map("Alliance") += 1 // Add 1 to alliance count
+                else if (player.faction.equalsIgnoreCase("HORDE")) map("Horde") += 1 // Add 1 to horde count
             }
             val aPercent = ((map("Alliance").toDouble / players.length) * 100).round
             val hPercent = ((map("Horde").toDouble / players.length) * 100).round
@@ -99,12 +103,13 @@ import org.mongodb.scala.bson.collection._
             val doc = Document("Date and Time" -> new Date().toString(), "Bracket" -> bracket, "Player Count" -> players.length, "Alliance %" -> aPercent, "Horde %" -> hPercent)
             DB.add(doc, "faction-ratio")
             logger.info(s"Bracket: $bracket | Players: ${players.length} | Alliance %: $aPercent | Horde %: $hPercent")
+            doc
         }
         /** Iterates through the entire input Player array, counting occurances of each realm
          * @param players array of Player objects, containing relevant player data parsed from Blizzard PvP API
          * prints counts of each realm occurance
          */
-        def countRealms(players: Array[Player], bracket: String) {
+        def countRealms(players: Array[Player], bracket: String): Document = {
             val map = Map[String, Int]()
             for (p <- players) {
                 if (!map.contains(p.realm)) map += (p.realm -> 1)
@@ -117,14 +122,15 @@ import org.mongodb.scala.bson.collection._
                 println(k.capitalize + ": " + v)
             }
             val doc = Document("Date and Time" -> new Date().toString(), "Bracket" -> bracket, "Player Count" -> players.length, "Realms Represented" -> map.size)
-            DB.add(doc, "realm-counts")
+            DB.add(DB.rDoc(bracket, players.length, map.size), "realm-counts")
             logger.info(s"Bracket: $bracket | Players: ${players.length} | Realms Represented: ${map.size}")
+            doc
         }
         /** Iterates through the entire input Player array, counting wins and losses
          * @param players array of Player objects, containing relevant player data parsed from Blizzard PvP API
          * prints average win %, loss %, and average games played
          */
-        def winLossRatio(players: Array[Player], bracket: String) {
+        def winLossRatio(players: Array[Player], bracket: String): Document =  {
             val map = Map("Wins" -> 0, "Losses" -> 0)
             for (p <- players) {
                 map("Wins") += p.wins
@@ -142,5 +148,6 @@ import org.mongodb.scala.bson.collection._
              "Win %" -> wPercent, "Loss %" -> lPercent, "Average Games Played" -> averageGamesPlayed)
             DB.add(doc, "win-loss-ratio")
             logger.info(s"Bracket: $bracket | Players: ${players.length} | Win %: $wPercent | Loss %: $lPercent | Average games: $averageGamesPlayed")
+            doc
         }
     }

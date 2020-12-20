@@ -39,7 +39,7 @@ class PlayerTest extends AnyFlatSpec {
         assert(doc.contains("\"Bracket\": \"3v3test\", \"Player Count\": 10, \"Win %\": 69, \"Loss %\": 31, \"Average Games Played\": 250"))
     }
     //Testing Player.countRealms method
-    it should "count realms, print iterated realms and their counts, and tally total represented realms" in {
+    it should "tally total represented realms" in {
         val players = Player.getPlayerInfo(10, "rbgtest")
         val doc = Player.countRealms(players, "rbgtest").toJson()
         assert(doc.contains("Date and Time"))

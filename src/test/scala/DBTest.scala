@@ -10,7 +10,6 @@ class DBTest extends AnyFlatSpec {
     "DB" should "add a document to the database" in {
         val doc = Document("Test" -> "Result")
         assert(DB.add(doc, "test-collection").toString.contains("AcknowledgedInsertOneResult"))
-        
     }
     //Testing DB.removeRecord method
     it should "delete a document from the database" in {

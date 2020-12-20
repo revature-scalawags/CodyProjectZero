@@ -23,9 +23,10 @@ object Utilities extends LazyLogging {
         println("Invalid input! Try again.")
         waitforUser()
     }
+
     /** Simple function used to check if a String can be converted into an Int
       * (Just an excuse to try out Option-> Some/None)
-      * @param s the input String
+      * @param s The input String
       * @return Some(Int) if conversion is valid, or None if invalid
       */
     def toInt(s: String): Option[Int] = {
@@ -40,17 +41,16 @@ object Utilities extends LazyLogging {
     }
 
     /**
-      * Simple function that program to pause while user looks at results
+      * Simple function that causes program to pause while user looks at results
       */
     def waitforUser() {
         println("\nPress enter to resume")
         readLine()
     }
 
-    /** Function used to start the application
-      * 
-      * Creates three futures as the application starts that call the Wow PvP Leadersboards API and grab data from them to be used later
-      * Once the introductory statements have executed and the futures have been returned, the application begins runnig with the beginAnalysis() method
+    /** Function used to start the application.
+      * - Creates three futures as the application starts that run fetchData() to call the Wow PvP Leadersboards API and grab data from them to be used later.
+      * - Once the introductory statements have executed and the futures have been returned, the application begins running with the beginAnalysis() method.
       */
     def start() {
         // Referenced https://users.scala-lang.org/t/executing-an-action-after-everything-in-a-list-of-futures-has-completed/1607/2
@@ -83,17 +83,18 @@ object Utilities extends LazyLogging {
         beginAnalysis() // Jump to next method
     }
 
-    /** This method is called in the start() method
-      * 
-      * Fetches an access token from the Blizzard API, then grabs data from the WoW PvP leadersboards Blizzard API for the current season (season 30)
-      * Converts the the returned information into a json format and then writes it to a json file
-      * @param bracket the relevant bracket (2v2, 3v3, rbg) that the user has selected, which will also be the file name
+    /** This method is called at the very beginning of the start() method, 
+      * and is used to gather information from the Blizzard API
+      * - Fetches an access token from the Blizzard API, then grabs data from the WoW PvP leadersboards Blizzard API for the current season (season 30).
+      * - Converts the returned information into a JSON format and then writes it to a JSON file
+      * @param bracket The relevant bracket (2v2, 3v3, rbg) that the user has selected, which will also be the file name
+      * @return Returns a String Iterator containing the first 39 lines of JSON formatted API response. For testing purposes.
       */
     def fetchData(bracket: String): Iterator[String] = {
-        val tokenRequest = s"curl -s -u ${sys.env.get("ID").get}:${sys.env.get("SECRET").get} -d grant_type=client_credentials https://us.battle.net/oauth/token" // Token request
-        val token = tokenRequest.!!.split("\"")(3) // Sends out token request and grabs returned result, splitting it into an array and grabbing the fourth item, which is the token
-        val url = s"https://us.api.blizzard.com/data/wow/pvp-season/30/pvp-leaderboard/$bracket?namespace=dynamic-us&locale=en_US&access_token=$token" // call the relevant API
-        val writer = new PrintWriter(s"$bracket.json")
+        val tokenRequest = s"curl -s -u ${sys.env.get("ID").get}:${sys.env.get("SECRET").get} -d grant_type=client_credentials https://us.battle.net/oauth/token" // Token request.
+        val token = tokenRequest.!!.split("\"")(3) // Sends out token request and grabs returned result, splitting it into an array and grabbing the fourth item, which is the token.
+        val url = s"https://us.api.blizzard.com/data/wow/pvp-season/30/pvp-leaderboard/$bracket?namespace=dynamic-us&locale=en_US&access_token=$token" // Call the relevant API.
+        val writer = new PrintWriter(s"$bracket.json") // Writes the information into a JSON file that will be searched through later.
         val apiInfo = scala.io.Source.fromURL(url).mkString.parseJson.prettyPrint
         writer.print(apiInfo)
         writer.close()
@@ -101,16 +102,16 @@ object Utilities extends LazyLogging {
         testLines
     }
 
-    /** Checks if the user's input is a valid attempt at getting a quick analysis
-      *     If an attempt was detected, the information returned by this function will be used in the quickAnalysis function
-      * Only checks for partial validity, as partial validity implies that a user attempted to use the quick analysis feature
-      * Later, in the quickAnalysis function, user's input will be checked for full validity.
-      * @param s user's input string
-      * @return tuple containing:
-      *     Boolean -> Will be true if it is determined that a user attempted to run a quick analysis
-      *     String -> Will contains the user's input bracket, or "" if no bracket was detected or bracket was input incorrectly
-      *     Int -> Will contain the user's input player count, or 0 if no player count was detected or player count was input incorrectly
-      *     String -> Will contain the user's input analysis type, or "" if no analysis type was detected or analysis type was input incorrectly
+    /** Checks if the user's input is a valid attempt at getting a quick analysis.
+      * - If an attempt was detected, the information returned by this function will be used in the quickAnalysis function.
+      * - Only checks for partial validity, as partial validity implies that a user attempted to use the quick analysis feature.
+      * - Later, in the quickAnalysis function, user's input will be checked for full validity.
+      * @param s The user's input String.
+      * @return Returns a tuple in the following format: (Boolean, String, Int, String)
+      * - Boolean -> Will be true if it is determined that a user attempted to run a quick analysis.
+      * - String -> Will contains the user's input bracket, or "" if no bracket was detected or bracket was input incorrectly.
+      * - Int -> Will contain the user's input player count, or 0 if no player count was detected or player count was input incorrectly.
+      * - String -> Will contain the user's input analysis type, or "" if no analysis type was detected or analysis type was input incorrectly.
       */
     def checkValid(s: String): (Boolean, String, Int, String) = {
         var partiallyValid = false
@@ -142,19 +143,20 @@ object Utilities extends LazyLogging {
         (partiallyValid, bracket, playerCount, aType)
     }
 
-    /** Checks to see if all user inputs are valid for a quick analysis
-      *     If they are, then the relevant data is grabbed and the specified analysis is performed
-      *     If not, a message is displayed displaying the correct input format for a quick analysis
-      * @param bracket the PvP bracket to analyze (2v2, 3v3, rbg)
-      * @param count the number of top players to analyze in the bracket (1-4500)
-      * @param analysisType which analysis to run (f-> faction ratio, r-> realm count, wl -> win/loss ratio)
+    /** Checks to see if all user inputs are valid for a quick analysis.
+      * - If they are, then the relevant data is grabbed and the specified analysis is performed.
+      * - If not, a message is displayed displaying the correct input format for a quick analysis.
+      * @param bracket The PvP bracket to analyze (2v2, 3v3, rbg).
+      * @param count The number of top players to analyze in the bracket (1-4500).
+      * @param analysisType Which analysis to run (f-> faction ratio, r-> realm count, wl -> win/loss ratio).
+      * @return Returns a String denoting if quick analysis syntax was correct. For testing purposes.
       */
     def quickAnalysis(bracket: String, count: Int, analysisType: String): String = {
         var outputMessage = "Valid syntax"
         if (bracket == "" || count == 0 || analysisType == "") {
             outputMessage = "Input invalid! Are you attempting to do a quick analysis?\nQuick analysis format -> 2v2|3v3|rbg 1-4500 f|wl|r\nExample: 2v2 500 f"
             println(outputMessage)
-            logger.info("Caught user attempting to input quick analysis, but format was wrong.")
+            logger.info("Caught user attempting to input quick analysis, but format was wrong.") // Logs the bad attempt to run a quick analysis
         }
         else {
             val players = Player.getPlayerInfo(count, bracket)
@@ -167,6 +169,12 @@ object Utilities extends LazyLogging {
         waitforUser()
         outputMessage
     }
+
+    /** Program asks for uses input so information can begin to be gathered about user's desired analysis.
+      * - This method will be looped through continuously unless user inputs "q" to exit the application, 
+      * or the user inputs a bracket name, which will call the next relevant function.
+      * - User may also now perform a quick analysis, which will return results to the user, and then return back into this function
+      */
     def beginAnalysis() {
         breakable { while (true) {
             println("Options:")
@@ -194,14 +202,16 @@ object Utilities extends LazyLogging {
         } }
     }
 
-    /** Function runs when user selects their bracket to analyze
-      * @param bracket the pvp bracket to analyze, either 2v2, 3v3, or rbg (for rated battlegrounds)
-      * While loop continues as long as user input is valid (valid Int between 1 and 4500) or until users types 'q' to quit
-      * 
-      * - Makes API call to Blizzard's PvP Leaderboards API and saves it to local cvs file
-      * - Calls function "getPlayerInfo" to grab relevant player information from csv file
-      *       Generates an array containing all relevant player data in the form of "Player" objects
-      * - Calls function "analyze" to perform some basic analysis on the data within the array of "Player" objects
+    /** Function runs when user selects their bracket to analyze.
+      * - This method will be looped through continuously unless user inputs "q" to exit this layer of the application, 
+      * or the user inputs a valid player count (1-4500), which will call the next relevant function.
+      * - Makes API call to Blizzard's PvP Leaderboards API and saves it to local JSON file.
+      * - Calls function "getPlayerInfo" to grab relevant player information from file and
+      * generates an array containing all relevant player data in the form of "Player" objects.
+      * - Calls function "analyze" to perform some basic analysis on the data within the array of "Player" objects.
+      * - User may also now perform a quick analysis if they desire a different analysis than the one they are currently selecting, 
+      * which will return results to the user, and then return back into this function.
+      * @param bracket The pvp bracket to analyze (2v2, 3v3, rbg).
       */
     def pvpAnalysis(bracket: String) {
         var input = "" 
@@ -230,9 +240,12 @@ object Utilities extends LazyLogging {
     }
 
     /** Performs final analysis of user specified bracket and player count
-      * @param players player array that will be used as a total count of players as well as arguments for functions
-      * @param bracket PvP bracket previously specified by user to be used as argument for functions
-      * user specifies which function to run, which will perform the basic analysis selected
+      * - This is where the user inputs their desired analysis type
+      * - This method will be looped through continuously unless user inputs "q" to exit this layer of the application.
+      * - User may also now perform a quick analysis if they desire a different analysis than the one they are currently selecting,
+      *  which will return results to the user, and then return back into this function.
+      * @param players Array of Player objects that will be used as a total count of players, as well as arguments for functions.
+      * @param bracket PvP bracket previously specified by user to be used as argument for functions.
       */
     def analyze(players: Array[Player], bracket: String) {
         var input = ""

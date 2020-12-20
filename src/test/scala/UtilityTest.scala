@@ -57,12 +57,12 @@ class UtilityTest extends AnyFlatSpec {
         // 0% valid
         assert(Utilities.checkValid("4v4 0 d")._1 == false)
     }
-    //Testing Utilities.
+    //Testing Utilities.quickanalysis method
     it should "perform a quick analysis if proper syntax is input, " +
       "or output a helpful message if partially valid (66% valid) syntax is given" in {
         val robot = new Robot
         val valid = "Valid syntax"
-        val invalid= "Input invalid! Are you attempting to do a quick analysis?\nQuick analysis format -> 2v2|3v3|rbg 1-4500 f|wl|r\nExample: 2v2 500 f"
+        val invalid = "Input invalid! Are you attempting to do a quick analysis?\nQuick analysis format -> 2v2|3v3|rbg 1-4500 f|wl|r\nExample: 2v2 500 f"
         robot.keyPress(KeyEvent.VK_ENTER)
         robot.keyRelease(KeyEvent.VK_ENTER)
         assert(Utilities.quickAnalysis("2v2", 1, "f").equals(valid))
@@ -71,9 +71,9 @@ class UtilityTest extends AnyFlatSpec {
         assert(Utilities.quickAnalysis("3v3", 4500, "").equals(invalid))
         robot.keyPress(KeyEvent.VK_ENTER)
         robot.keyRelease(KeyEvent.VK_ENTER)
-        assert(Utilities.quickAnalysis("rbg", 0, "wl") == invalid)
+        assert(Utilities.quickAnalysis("rbg", 0, "wl").equals(invalid))
         robot.keyPress(KeyEvent.VK_ENTER)
         robot.keyRelease(KeyEvent.VK_ENTER)
-        assert(Utilities.quickAnalysis("", 500, "r") == invalid)
+        assert(Utilities.quickAnalysis("", 500, "r").equals(invalid))
     }
 }

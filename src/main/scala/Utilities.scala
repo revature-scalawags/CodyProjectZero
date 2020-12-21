@@ -177,11 +177,13 @@ object Utilities extends LazyLogging {
       */
     def beginAnalysis() {
         breakable { while (true) {
-            println("Options:")
-            println("2v2 --> Analyze the current US 2v2 arena bracket")
-            println("3v3 --> Analyze the current US 3v3 arena bracket")
-            println("rbg --> Analyze the current US rated battleground season")
-            println("q --> Exit application\n")
+            println("If you wish to skip normal program navigation and perform a quick analysis, you may do so at any time")
+            println("The format for a quick analysis is: 2v2|3v3|rbg 1-4500 f|wl|r\nExample: 2v2 500 f\n")
+            println("Otherwise, please input one of the following options to begin:\n")
+            println("2v2: Analyze the current US 2v2 arena bracket")
+            println("3v3: Analyze the current US 3v3 arena bracket")
+            println("rbg: Analyze the current US rated battleground season")
+            println("q: Exit application\n")
             val desiredCount = readLine()
             println()
             try {
@@ -216,8 +218,8 @@ object Utilities extends LazyLogging {
     def pvpAnalysis(bracket: String) {
         var input = "" 
         while (input != "q") {
-            println(s"q --> Exit $bracket analysis")
-            println(s"Enter the number of top players you wish to analyze in the $bracket bracket (max 4500):\n")
+            println(s"Enter the number of top players you wish to analyze in the $bracket bracket (minimum 1, maximum 4500) to continue:")
+            println(s"Enter q to return to the previous menu\n")
 
             input = readLine()
             println()
@@ -250,11 +252,11 @@ object Utilities extends LazyLogging {
     def analyze(players: Array[Player], bracket: String) {
         var input = ""
         while (input != "q") {
-            println(s"What do you wish to know about the top ${players.length} players in the $bracket bracket?")
-            println("\nf --> Faction: Alliance to Horde ratio")
-            println("wl--> Win/Loss: Average win/loss ratio")
-            println("r --> Realms: Count of all realms that the top players are from")
-            println("q --> Quit: Exit analysis\n")
+            println(s"Enter one of the following options for your final analysis about the top ${players.length} players in the $bracket bracket")
+            println("\nf: View the percentage of Horde players versus Alliance players")
+            println("wl: View the average percentage of wins and losses, as well as the average games played")
+            println("r: View a list and count of all realms (servers) that the top players are from")
+            println("q: Return to the previous menu\n")
             input = readLine()
             println()
             try {

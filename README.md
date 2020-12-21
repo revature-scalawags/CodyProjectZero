@@ -18,20 +18,25 @@ Analysis includes:
 
 > "dotenv" sbt plugin (https://github.com/mefellows/sbt-dotenv).
 
+> 10 MBs of available storage space to store the generated JSON files
+
 >Access credentials to Blizzard's battle.net APIs (https://develop.battle.net/).
 
+>Access credentials to a MongoDB Atlas cluster
+
 >> These access credentials should be saved in a .env file located in the root directory of this project.
-This .env file should contain the user's Blizzard client ID and Blizzard client secret in the following format:
+This .env file should contain the user's Blizzard client ID, Blizzard client secret, Mongo Atlas default database name, MongoDB Atlas username, and MongoDB Atlas password in the following format:
 
-    ID=<Blizzard Client ID here>
-    SECRET=<Blizzard Client Secret here>
-
-> 10 MBs of available storage space to store the generated JSON files
+    ID=<Blizzard Client ID>
+    SECRET=<Blizzard Client Secret>
+    DB_NAME=<Database Name>
+    DB_USER=<Database User>
+    DB_PASS=<Database Password>
 
 ## Usage
 1. Ensure all above requirements are met
 2. Download the project files in this repository
-3. Navigate to the downloaded "CodyProjectZero" folder and run the following command:
+3. Open your desired shell of choice, navigate to the downloaded "CodyProjectZero" folder, and run the following command:
     
     sbt --error run
 

@@ -40,11 +40,15 @@ User is able to input the number of top players they wish to analyze as well as 
 
     - These access credentials should be saved in a .env file located in the root directory of this project. This .env file should contain the user's Blizzard client ID, Blizzard client secret, Mongo Atlas default database name, MongoDB Atlas username, and MongoDB Atlas password in the following format:
 
-    ID=<Blizzard Client ID>
-    SECRET=<Blizzard Client Secret>
-    DB_NAME=<Database Name>
-    DB_USER=<Database User>
-    DB_PASS=<Database Password>
+    ID=[Blizzard Client ID]
+
+    SECRET=[Blizzard Client Secret]
+
+    DB_NAME=[Database Name]
+
+    DB_USER=[Database User]
+
+    DB_PASS=[Database Password]
 
 ## Usage
 1. Ensure all above requirements are met

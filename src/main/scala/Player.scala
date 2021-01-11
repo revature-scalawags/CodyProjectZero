@@ -7,6 +7,7 @@ import java.util.Date
 import spray.json._
 import DefaultJsonProtocol._
 import org.mongodb.scala.bson.collection._
+import org.mongodb.scala.Observer
 
 // Class used to organize player data retrieved from API call
 class Player {

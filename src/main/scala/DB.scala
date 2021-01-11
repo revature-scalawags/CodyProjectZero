@@ -66,7 +66,7 @@ object DB {
         val db: MongoDatabase = client.getDatabase("wow-pvp-analysis")
         val col = db.getCollection(collectionName)
         
-        val results = col.insertOne(doc).results()
+        val results = col.insertOne(doc).results
         client.close()
         results
     }

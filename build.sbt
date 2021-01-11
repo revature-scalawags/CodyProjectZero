@@ -1,5 +1,4 @@
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.2" % "test"
-libraryDependencies += "org.scalatest" %% "scalatest-flatspec" % "3.2.2" % "test"
 //logBuffered in Test := false
 libraryDependencies += "io.spray" %%  "spray-json" % "1.3.6"
 libraryDependencies += "org.mongodb.scala" %% "mongo-scala-driver" % "4.1.1"
